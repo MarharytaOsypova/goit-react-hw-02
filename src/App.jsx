@@ -5,22 +5,30 @@ import Feedback from "./components/Feedback/Feedback"
 import Notification from "./components/Notification/Notification"
  
 const App = () => {
-  const [feedback, setFeedback] = useState({
-    good: 0,
-    neutral: 0,
-    bad: 0
-  });
-  useEffect(() => {
-    const savedFeedback = localStorage.getItem('feedback');
-       if (savedFeedback) {
+ const [feedback, setFeedback] = useState(() => {
+    const savedFeedback = localStorage.getItem("feedback");
+    if (savedFeedback) {
       try {
         const parsedFeedback = JSON.parse(savedFeedback);
-        setFeedback(parsedFeedback ?? { good: 0, neutral: 0, bad: 0 });
+        if (
+          parsedFeedback &&
+          typeof parsedFeedback.good === "number" &&
+          typeof parsedFeedback.neutral === "number" &&
+          typeof parsedFeedback.bad === "number"
+        ) {
+          return parsedFeedback;
+        }
       } catch (error) {
-         error;
+        error;
       }
     }
-  }, []); 
+    return { good: 0, neutral: 0, bad: 0 };
+  });
+
+
+    useEffect(() => {
+    localStorage.setItem("feedback", JSON.stringify(feedback));
+  }, [feedback]);
 
   const totalFeedback = feedback.good + feedback.neutral + feedback.bad;
 
@@ -29,17 +37,15 @@ const App = () => {
     : 0;
 
   const updateFeedback = (feedbackType) => {
-    setFeedback((prev) => {
-      const updatedFeedback = { ...prev, [feedbackType]: prev[feedbackType] + 1 };
-      localStorage.setItem('feedback', JSON.stringify(updatedFeedback));   
-      return updatedFeedback;
-    });
+    setFeedback((prev) => ({
+      ...prev,
+      [feedbackType]: prev[feedbackType] + 1,
+    }));
   };
-    const resetFeedback = () => {
-  const initialState = { good: 0, neutral: 0, bad: 0 };
-  setFeedback(initialState);
-  localStorage.setItem('feedback', JSON.stringify(initialState));
-    };
+
+  const resetFeedback = () => {
+    setFeedback({ good: 0, neutral: 0, bad: 0 });
+  };
   
   return (
     <>
